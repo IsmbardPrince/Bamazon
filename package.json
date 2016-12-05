@@ -1,0 +1,14 @@
+{
+  "name": "bamazon",
+  "version": "0.0.0",
+  "description": "Bamazon",
+  "main": "app.js",
+  "author": {
+    "name": "Dwight"
+  },
+  "dependencies": {
+    "cli-table": "^0.3.1",
+    "inquirer": "^1.2.3",
+    "mysql": "^2.12.0"
+  }
+}
