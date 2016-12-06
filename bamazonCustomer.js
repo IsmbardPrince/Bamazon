@@ -22,7 +22,7 @@ function dispAll() {
         colWidths: [8, 40, 22, 12, 12]
     });
 
-    connection.query("SELECT * FROM products;", function (err, rows, fields) {
+    connection.query("SELECT * FROM products ORDER BY department_name, product_name;", function (err, rows, fields) {
         if (err) throw err;
 
         console.log("\n--- Bamazon Product Catalog ---");
