@@ -2,10 +2,15 @@
 var mysql = require('mysql');
 var Table = require('cli-table');
 
+var dbPassword = "";
+if (typeof process.argv[2] !== undefined) {
+    dbPassword = process.argv[2];
+}
+
 var connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Mdd1&Pyd2',
+    password: dbPassword,
     database: 'bamazon'
 });
 connection.connect();
@@ -22,7 +27,8 @@ function dispAll() {
         colWidths: [8, 40, 22, 12, 12]
     });
 
-    connection.query("SELECT * FROM products ORDER BY department_name, product_name;", function (err, rows, fields) {
+    connection.query("SELECT item_id, product_name, department_name, price, stock_quantity FROM products LEFT JOIN departments on products.department_id = departments.department_id ORDER BY department_name, product_name;", function (err, rows, fields) {
+
         if (err) throw err;
 
         console.log("\n--- Bamazon Product Catalog ---");
@@ -59,7 +65,7 @@ function buyProduct() {
         var id = answers.id;
         var qty = answers.qty;
 
-        connection.query("SELECT product_name, price, stock_quantity FROM products WHERE item_id = ?;", [id], function (err, rows, fields) {
+        connection.query("SELECT product_name, department_id, price, stock_quantity FROM products WHERE item_id = ?;", [id], function (err, rows, fields) {
 
             if (err) throw err;
 
@@ -67,13 +73,18 @@ function buyProduct() {
                 case 1:
                     //console.log(rows[0].stock_quantity);
                     var namProduct = rows[0].product_name;
+                    var idDept = rows[0].department_id;
                     var prcProduct = rows[0].price;
                     var qtyStock = rows[0].stock_quantity;
                     if (qtyStock >= qty) {
                         connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?;", [(qtyStock - qty), id], function (err, rows, fields) {
                             if (err) throw err;
-                            console.log("\n\nYour total price for: " + namProduct + ", Quantity: " + qty + " is $" + (qty * prcProduct).toFixed(2) + "\n\n");
-                            buyMore();
+                            var totSale = qty * prcProduct;
+                            console.log("\n\nYour total price for: " + namProduct + ", Quantity: " + qty + " is $" + totSale.toFixed(2) + "\n\n");
+                            connection.query("UPDATE departments SET total_sales = total_sales + ? WHERE department_id = ?;", [totSale, idDept], function (err, rows, fields) {
+                                if (err) throw err;
+                                buyMore();
+                            });
                         });
                     } else {
                         inquirer.prompt([
